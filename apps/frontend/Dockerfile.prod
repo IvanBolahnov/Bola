@@ -7,7 +7,7 @@ COPY . .
 RUN mkdir -p /app/www
 
 # копируем готовый dist
-COPY --from=builder /app/dist /app/www
+COPY /dist /app/www
 
 # nginx конфиг
 COPY nginx.conf /etc/nginx/conf.d/default.conf
