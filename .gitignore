@@ -8,12 +8,10 @@ pnpm-debug.log*
 lerna-debug.log*
 
 node_modules
-dist
 dist-ssr
 *.local
 .env
-package-lock.json
-docker-compose.prod.yml
+.env.production
 
 # Editor directories and files
 .vscode/*
