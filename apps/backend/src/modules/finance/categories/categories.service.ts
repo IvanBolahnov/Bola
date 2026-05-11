@@ -25,7 +25,7 @@ export class CategoriesService {
 	}
 
 	async update(userId: string, id: string, dto: UpdateCategoryDto) {
-		const category = await this.findOneOrFail(id, userId)
+		const category = await this.findOneOrFail(userId, id)
 		Object.assign(category, dto)
 		return this.categoriesRepo.save(category)
 	}

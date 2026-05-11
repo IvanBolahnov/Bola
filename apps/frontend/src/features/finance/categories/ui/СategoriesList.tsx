@@ -1,11 +1,12 @@
 import {
   Card,
+  CardAction,
   CardDescription,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { RiAddLine, RiPieChartLine } from "@remixicon/react"
+import { RiAddLine, RiEditLine, RiPieChartLine } from "@remixicon/react"
 // import { RiPieChartLine } from "@remixicon/react"
 import {
   Empty,
@@ -15,7 +16,6 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "@/components/ui/empty"
-import { Link } from "react-router-dom"
 import { useGetCategories } from "../model/useGetCategories"
 import { CreateOrEditCategoryDialog } from "./CreateOrEditCategoryDialog"
 import { CategoryIcon } from "@/shared/lib/categoryHalpers"
@@ -27,28 +27,28 @@ export function CategoriesList() {
     <>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4">
         {categories?.map((category) => (
-          <Link to={`/finance/${category.id}`} key={category.id}>
-            <Card className="relative w-full">
-              <CardHeader>
-                <CardTitle className="z-2 flex gap-2">
-                  {category.name}
-                </CardTitle>
-                <CardDescription className="absolute top-0">
-                  <CategoryIcon
-                    icon={category.icon || ""}
-                    className="opacity-10"
-                  />
-                </CardDescription>
-              </CardHeader>
-            </Card>
-          </Link>
+          <Card className="relative w-full">
+            <CardHeader>
+              <CardTitle className="z-2 flex gap-2">{category.name}</CardTitle>
+              <CardDescription className="absolute top-0">
+                <CategoryIcon
+                  icon={category.icon || ""}
+                  className="opacity-10"
+                />
+              </CardDescription>
+              <CardAction>
+                <CreateOrEditCategoryDialog category={category}>
+                  <Button variant={"outline"}>
+                    <RiEditLine />
+                  </Button>
+                </CreateOrEditCategoryDialog>
+              </CardAction>
+            </CardHeader>
+          </Card>
         ))}
         {categories?.length !== 0 && (
           <CreateOrEditCategoryDialog>
-            <Button
-              variant="ghost"
-              className="h-full min-h-12 w-full border border-border bg-card"
-            >
+            <Button variant="outline" className="h-full min-h-12 w-full">
               <RiAddLine size={50} />
             </Button>
           </CreateOrEditCategoryDialog>

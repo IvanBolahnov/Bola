@@ -55,7 +55,7 @@ export default function WalletPage() {
   } = useGetRecurringTransactions({ walletId: id })
 
   return (
-    <div className="flex h-full w-full flex-col items-center justify-center gap-6 p-4">
+    <div className="flex h-full w-full flex-col items-center justify-center gap-6">
       <div className="flex h-full w-full flex-col gap-2">
         <Breadcrumb>
           <BreadcrumbList>

@@ -33,6 +33,7 @@ import {
 } from "@/entities/finance/category/model/types"
 import { Label } from "@/components/ui/label"
 import { ScrollArea } from "@/components/ui/scroll-area"
+import { useUpdateCategory } from "../model/useUpdateCategory"
 
 type CreateOrEditWalletProps = {
   category?: Category
@@ -45,7 +46,20 @@ export function CreateOrEditCategoryDialog({
 }: CreateOrEditWalletProps) {
   const isEdit = !!category
 
-  const { mutate: createWallet, isPending, error } = useCreateCategory()
+  const {
+    mutate: createCategory,
+    isPending: isPendingCreate,
+    error: errorCreate,
+  } = useCreateCategory()
+  const {
+    mutate: updateCategory,
+    isPending: isPendingUpdate,
+    error: errorUpdate,
+  } = useUpdateCategory()
+
+  const isPending = isPendingCreate || isPendingUpdate
+  const error = errorCreate || errorUpdate
+
   const [open, setOpen] = useState(false)
   const defaultValues = {
     name: category?.name || undefined,
@@ -63,7 +77,14 @@ export function CreateOrEditCategoryDialog({
   })
 
   const onSubmit = async (data: CategoryFormData) => {
-    createWallet(data, { onSuccess: () => setOpen(false) })
+    if (isEdit) {
+      updateCategory(
+        { id: category.id, data },
+        { onSuccess: () => setOpen(false) }
+      )
+      return
+    }
+    createCategory(data, { onSuccess: () => setOpen(false) })
   }
 
   return (

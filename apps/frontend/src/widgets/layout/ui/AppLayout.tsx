@@ -16,7 +16,7 @@ export function AppLayout({ children }: AppLayoutProps) {
 
       {/* Основной контент */}
       <div className="flex flex-1 flex-col overflow-hidden">
-        <main className="flex-1 overflow-auto p-4">{children}</main>
+        <main className="flex-1 overflow-auto p-4 md:p-6">{children}</main>
 
         {/* Bottom nav — только на мобильных */}
         <div className="md:hidden">
