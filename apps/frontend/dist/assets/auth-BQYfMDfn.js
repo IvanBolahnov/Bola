@@ -1,0 +1,1 @@
+import{l as s}from"./index-skQ031mT.js";const o={register:e=>s.post("/auth/register",e),login:e=>s.post("/auth/login",e),logout:()=>s.post("/auth/logout"),refresh:()=>s.post("/auth/refresh"),getSessions:()=>s.get("/auth/sessions"),revokeSession:e=>s.delete(`/auth/sessions/${e}`),revokeAllSessions:()=>s.delete("/auth/sessions")};export{o as a};
