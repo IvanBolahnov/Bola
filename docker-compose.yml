@@ -1,0 +1,73 @@
+services:
+  # backend:
+  #   environment:
+  #     - CHOKIDAR_USEPOLLING=true
+  #   build:
+  #     context: ./apps/backend
+  #     dockerfile: Dockerfile.dev
+  #   container_name: app_backend
+  #   restart: unless-stopped
+  #   ports:
+  #     - "3000:3000"
+  #   volumes:
+  #     - ./apps/backend:/app # монтируем локальный код в контейнер
+  #     - /app/node_modules # анонимный volume для node_modules
+  #   env_file:
+  #     - ./apps/backend/.env
+  #   depends_on:
+  #     postgres:
+  #       condition: service_healthy
+  #     redis:
+  #       condition: service_healthy
+
+  # frontend:
+  #   build:
+  #     context: ./apps/frontend
+  #     dockerfile: Dockerfile.dev
+  #   container_name: app_frontend
+  #   restart: unless-stopped
+  #   ports:
+  #     - "5173:5173"
+  #   volumes:
+  #     - ./apps/frontend:/app
+  #     - /app/node_modules
+  #   env_file:
+  #     - ./apps/frontend/.env
+  #   depends_on:
+  #     - backend
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: app_postgres
+    restart: unless-stopped
+    ports:
+      - "5433:5432"
+    env_file:
+      - ./apps/backend/.env
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_HOST_AUTH_METHOD: trust
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U app_user -d app_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: app_redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:
+  redis_data:
