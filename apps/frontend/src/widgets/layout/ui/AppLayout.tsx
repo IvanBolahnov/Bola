@@ -1,7 +1,6 @@
 import { Sidebar } from "./Sidebar"
 import { BottomNav } from "./BottomNav"
 import { Skeleton } from "@/components/ui/skeleton"
-
 interface AppLayoutProps {
   children: React.ReactNode
 }
@@ -15,8 +14,10 @@ export function AppLayout({ children }: AppLayoutProps) {
       </div>
 
       {/* Основной контент */}
-      <div className="flex flex-1 flex-col overflow-hidden">
-        <main className="flex-1 overflow-auto p-4 md:p-6">{children}</main>
+      <div className="overflow flex flex-1 flex-col">
+        <main className="flex-1 overflow-auto px-4 md:px-6">
+          <div className="h-full py-4 md:py-6">{children}</div>
+        </main>
 
         {/* Bottom nav — только на мобильных */}
         <div className="md:hidden">

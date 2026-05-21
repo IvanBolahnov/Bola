@@ -12,6 +12,7 @@ import { UpdateRecurringDto } from "../dto/recurring-transaction/update-recurrin
 import { RecurringIntervalEnum } from "../enums/recurring-interval.enum"
 import { TransactionsService } from "../transactions/transactions.service"
 import { GetRecurringTransactionsDto } from "../dto/recurring-transaction/get-recurring.dto"
+import { Transaction } from "../entities/transaction.entity"
 
 @Injectable()
 export class RecurringService {
@@ -34,6 +35,7 @@ export class RecurringService {
 			.leftJoinAndSelect("r.category", "category")
 			.leftJoinAndSelect("r.wallet", "wallet")
 			.where("r.userId = :userId", { userId })
+			.andWhere("r.isActive = true")
 
 		if (dto.type) qb.andWhere("r.type = :type", { type: dto.type })
 		if (dto.walletId) {
@@ -63,15 +65,16 @@ export class RecurringService {
 	}
 
 	async update(userId: string, id: string, dto: UpdateRecurringDto) {
-		const recurring = await this.findOneOrFail(id, userId)
+		const recurring = await this.findOneOrFail(userId, id)
 		Object.assign(recurring, dto)
 		return this.recurringRepo.save(recurring)
 	}
 
 	async remove(userId: string, id: string) {
-		const recurring = await this.findOneOrFail(id, userId)
+		const recurring = await this.findOneOrFail(userId, id)
 		recurring.isActive = false
 		await this.recurringRepo.save(recurring)
+		return recurring
 	}
 
 	async findOneOrFail(userId: string, id: string) {
@@ -83,27 +86,33 @@ export class RecurringService {
 		return recurring
 	}
 
-	async processRecurring() {
+	/** Обрабатывает повторяющиеся транзакции (подписки), возвращает список созданных транзакций */
+	async processRecurring(userId: string) {
 		const now = new Date()
 		const due = await this.recurringRepo.find({
-			where: { isActive: true }
+			where: { isActive: true, userId }
 		})
 
+		const transactions: Transaction[] = []
 		for (const r of due.filter((r) => r.nextDate <= now)) {
 			while (r.nextDate <= now) {
-				await this.transactionsService.create(r.userId, {
-					title: r.title,
-					type: r.type,
-					amount: Number(r.amount),
-					walletId: r.walletId,
-					categoryId: r.categoryId ?? undefined,
-					date: r.nextDate.toISOString()
-				})
+				transactions.push(
+					await this.transactionsService.create(r.userId, {
+						title: r.title,
+						type: r.type,
+						amount: Number(r.amount),
+						walletId: r.walletId,
+						categoryId: r.categoryId ?? undefined,
+						date: r.nextDate.toISOString()
+					})
+				)
 
 				r.nextDate = this.calculateNextDate(r.nextDate, r.interval)
 				await this.recurringRepo.save(r)
 			}
 		}
+
+		return transactions
 	}
 
 	private calculateNextDate(from: Date, interval: RecurringIntervalEnum): Date {

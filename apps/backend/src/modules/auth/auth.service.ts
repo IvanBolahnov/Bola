@@ -47,7 +47,15 @@ export class AuthService {
 	async login(dto: LoginDto, userAgent: string, ip: string) {
 		const user = await this.usersRepo.findOne({
 			where: { email: dto.email },
-			select: ["id", "email", "name", "password", "createdAt", "updatedAt"]
+			select: [
+				"id",
+				"email",
+				"name",
+				"password",
+				"createdAt",
+				"updatedAt",
+				"role"
+			]
 		})
 
 		if (!user) throw new UnauthorizedException("Invalid credentials")
@@ -226,7 +234,7 @@ export class AuthService {
 		return {
 			accessToken,
 			refreshToken,
-			user: { id: user.id, email: user.email, name: user.name }
+			user: { id: user.id, email: user.email, name: user.name, role: user.role }
 		}
 	}
 

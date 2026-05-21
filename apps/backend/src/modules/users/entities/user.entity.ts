@@ -4,9 +4,12 @@ import {
 	Column,
 	CreateDateColumn,
 	UpdateDateColumn,
-	BeforeInsert
+	BeforeInsert,
+	OneToMany
 } from "typeorm"
 import { uuidv7 } from "uuidv7"
+import { UserRoleEnum } from "../enums/user-role.enum"
+import { Session } from "../../auth/entities/session.entity"
 
 @Entity("users")
 export class User {
@@ -28,6 +31,12 @@ export class User {
 
 	@Column({ nullable: true })
 	name!: string
+
+	@OneToMany(() => Session, (session) => session.user)
+	sessions!: Session[]
+
+	@Column({ type: "enum", enum: UserRoleEnum, default: UserRoleEnum.USER })
+	role!: UserRoleEnum
 
 	@CreateDateColumn()
 	createdAt!: Date

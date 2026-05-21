@@ -62,7 +62,7 @@ export class TransactionsService {
 	}
 
 	async findAll(userId: string, dto: GetTransactionsDto) {
-		await this.recurringService.processRecurring()
+		await this.recurringService.processRecurring(userId)
 		const qb = this.transactionsRepo
 			.createQueryBuilder("t")
 			.leftJoinAndSelect("t.category", "category")
@@ -103,7 +103,7 @@ export class TransactionsService {
 	}
 
 	async update(userId: string, id: string, dto: UpdateTransactionDto) {
-		const transaction = await this.findOneOrFail(id, userId)
+		const transaction = await this.findOneOrFail(userId, id)
 		Object.assign(transaction, dto)
 		return this.transactionsRepo.save(transaction)
 	}

@@ -22,7 +22,7 @@ export function useGetRecurringTransactions(
   >({
     queryFn: async () => {
       try {
-        const response = await transactionsApi.getRecurringTransactions(params)
+        const response = await transactionsApi.getRecurring(params)
         return response.data
       } catch (error: unknown) {
         if (error instanceof AxiosError) {

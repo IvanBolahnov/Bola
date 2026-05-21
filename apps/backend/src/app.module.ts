@@ -7,7 +7,7 @@ import { AuthModule } from "./modules/auth/auth.module"
 import { FinanceModule } from "./modules/finance/finance.module"
 import { UsersModule } from "./modules/users/users.module"
 import { APP_GUARD } from "@nestjs/core"
-import { CustomThrottlerGuard } from "./guards/CustomThrottler.guard"
+import { CustomThrottlerGuard } from "./guards/custom-throttler.guard"
 
 @Module({
 	imports: [

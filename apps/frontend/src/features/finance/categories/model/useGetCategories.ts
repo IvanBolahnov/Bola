@@ -4,7 +4,7 @@ import { useAuthStore } from "@/entities/user/model/authStore"
 
 export function useGetCategories() {
   return useQuery({
-    queryFn: () => categoriesApi.getCategories().then((res) => res.data),
+    queryFn: () => categoriesApi.getAll().then((res) => res.data),
     queryKey: ["categories"],
     enabled: useAuthStore.getState().isAuthenticated,
   })

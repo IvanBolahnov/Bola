@@ -1,10 +1,13 @@
+import { AdminSvg } from "@/assets/AdminSvg"
+import { LogoSvg } from "@/assets/LogoSvg"
+import { useAuthStore } from "@/entities/user/model/authStore"
 import {
   RiTaskLine,
   RiMoneyDollarCircleLine,
   RiCalendarLine,
   RiMusicLine,
   RiMessage2Line,
-  RiUserLine,
+  // RiUserLine,
   RiAppsLine,
 } from "@remixicon/react"
 
@@ -31,26 +34,60 @@ export const sidebarItems: NavItem[] = [
 ]
 
 export const sidebarBottomItems: NavItem[] = [
-  { label: "Профиль", href: "/profile", icon: <RiUserLine size={18} /> },
-]
+  useAuthStore.getState().user?.role === "admin"
+    ? {
+        label: "Администрирование",
+        href: "/admin",
+        icon: <AdminSvg id="sidebar" />,
+      }
+    : undefined,
+  {
+    label: "Профиль",
+    href: "/profile",
+    icon: <LogoSvg id="sidebar" />,
+  },
+].filter((item) => item !== undefined)
+
+const BOTTOM_NAV_ICON_SIZE = "size-4"
 
 export const organizationItems: NavItem[] = [
-  { label: "Задачи", href: "/tasks", icon: <RiTaskLine size={18} /> },
+  {
+    label: "Задачи",
+    href: "/tasks",
+    icon: <RiTaskLine className={BOTTOM_NAV_ICON_SIZE} />,
+  },
   {
     label: "Финансы",
     href: "/finance",
-    icon: <RiMoneyDollarCircleLine size={18} />,
+    icon: <RiMoneyDollarCircleLine className={BOTTOM_NAV_ICON_SIZE} />,
   },
   {
     label: "Расписание",
     href: "/schedule",
-    icon: <RiCalendarLine size={18} />,
+    icon: <RiCalendarLine className={BOTTOM_NAV_ICON_SIZE} />,
   },
 ]
 
 export const bottomNavItems = [
-  { label: "Организация", icon: <RiAppsLine size={22} />, isOrg: true },
-  { label: "Музыка", href: "/music", icon: <RiMusicLine size={22} /> },
-  { label: "Чат", href: "/chat", icon: <RiMessage2Line size={22} /> },
-  { label: "Профиль", href: "/profile", icon: <RiUserLine size={22} /> },
+  {
+    label: "Организация",
+    icon: <RiAppsLine className={BOTTOM_NAV_ICON_SIZE} />,
+    isOrg: true,
+  },
+  {
+    label: "Музыка",
+    href: "/music",
+    icon: <RiMusicLine className={BOTTOM_NAV_ICON_SIZE} />,
+  },
+  {
+    label: "Чат",
+    href: "/chat",
+    icon: <RiMessage2Line className={BOTTOM_NAV_ICON_SIZE} />,
+  },
+  // { label: "Профиль", href: "/profile", icon: <RiUserLine size={22} /> },
+  {
+    label: "Профиль",
+    href: "/profile",
+    icon: <LogoSvg id="bottom__nav" className={BOTTOM_NAV_ICON_SIZE} />,
+  },
 ]

@@ -31,8 +31,9 @@ export class CategoriesService {
 	}
 
 	async remove(userId: string, id: string) {
-		const category = await this.findOneOrFail(id, userId)
+		const category = await this.findOneOrFail(userId, id)
 		await this.categoriesRepo.remove(category)
+		return category
 	}
 
 	async findOneOrFail(userId: string, id: string) {

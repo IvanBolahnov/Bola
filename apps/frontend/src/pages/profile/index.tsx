@@ -6,6 +6,11 @@ import { Spinner } from "@/components/ui/spinner"
 import { RiPencilLine } from "@remixicon/react"
 import { EditNameDialog } from "@/features/user/ui/EditNameDialog"
 import { SessionsList } from "@/features/auth/ui/SessionsList"
+import { Badge } from "@/components/ui/badge"
+import { UserRoles } from "@/entities/user/model/types"
+import { getUserRoleRuByValue } from "@/shared/lib/roleHalpers"
+import { Link } from "react-router-dom"
+import { AdminSvg } from "@/assets/AdminSvg"
 
 export default function ProfilePage() {
   const user = useAuthStore((s) => s.user)
@@ -15,7 +20,22 @@ export default function ProfilePage() {
     <div className="mx-auto flex flex-col gap-6">
       <div className="flex flex-col gap-1">
         <h1 className="text-xl font-medium">Профиль</h1>
-        <p className="text-sm text-muted-foreground">Управление аккаунтом</p>
+        <div className="flex items-center gap-1">
+          <p className="text-sm text-muted-foreground">Управление аккаунтом</p>
+          {(user?.role ?? UserRoles.USER) !== UserRoles.USER && (
+            <>
+              <Separator orientation="vertical" />
+              <Badge>{getUserRoleRuByValue(user!.role)}</Badge>
+              {user?.role === UserRoles.ADMIN && (
+                <Button asChild size={"icon"} variant={"ghost"}>
+                  <Link to="/admin">
+                    <AdminSvg />
+                  </Link>
+                </Button>
+              )}
+            </>
+          )}
+        </div>
       </div>
       <Separator />
       <div className="flex flex-col gap-2">

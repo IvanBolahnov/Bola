@@ -7,8 +7,8 @@ export function useDeleteWallet() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: (wallet: Wallet) => walletsApi.delete(wallet.id),
-    onMutate: async (wallet) => {
+    mutationFn: (id: string) => walletsApi.delete(id),
+    onMutate: async (id) => {
       // Отменяем текущие запросы чтобы не перезаписали оптимистичное обновление
       await queryClient.cancelQueries({ queryKey: ["wallets"] })
 
@@ -18,7 +18,7 @@ export function useDeleteWallet() {
       // Оптимистично убираем счёт из кэша
       queryClient.setQueryData<Wallet[]>(
         ["wallets"],
-        (old) => old?.filter((w) => w.id !== wallet.id) ?? []
+        (old) => old?.filter((w) => w.id !== id) ?? []
       )
 
       return { previousWallets }

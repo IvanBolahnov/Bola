@@ -1,10 +1,6 @@
 import { useEffect, useState, type ReactNode } from "react"
 import { Controller, useForm, useWatch } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { format } from "date-fns"
-import { ru } from "date-fns/locale"
-// import { CalendarIcon } from "lucide-react"
-
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -28,12 +24,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover"
-import { Calendar } from "@/components/ui/calendar"
 import { Textarea } from "@/components/ui/textarea"
 import { cn } from "@/shared/lib/utils"
 
@@ -48,6 +38,8 @@ import { useGetWallets } from "../../wallets/model/useGetWallets"
 import { useGetCategories } from "../../categories/model/useGetCategories"
 import { MoneyInput } from "@/shared/ui/MoneyInput"
 import { CategoryIcon } from "@/shared/lib/categoryHalpers"
+import { DateTimeInput } from "@/shared/ui/DateTimeInput"
+import { useUpdateTransaction } from "../model/useUpdateTransaction"
 
 type Props = {
   walletId: string
@@ -63,7 +55,16 @@ export function CreateOrEditTransactionDialog({
   const isEdit = !!transaction
   const [open, setOpen] = useState(false)
 
-  const { mutate: createTransaction, isPending, error } = useCreateTransaction()
+  const {
+    mutate: createTransaction,
+    isPending: isPendingCreate,
+    error: errorCreate,
+  } = useCreateTransaction()
+  const {
+    mutate: updateTransaction,
+    isPending: isPendingUpdate,
+    error: errorUpdate,
+  } = useUpdateTransaction()
   const { data: wallets = [] } = useGetWallets()
   const { data: categories = [] } = useGetCategories()
 
@@ -87,6 +88,12 @@ export function CreateOrEditTransactionDialog({
     },
   })
 
+  useEffect(() => {
+    if (!open) {
+      reset()
+    }
+  }, [open, reset])
+
   // следим за типом чтобы показывать нужные поля
   const type = useWatch({ control, name: "type" })
   const isTransfer = type === TransactionTypes.TRANSFER
@@ -107,21 +114,39 @@ export function CreateOrEditTransactionDialog({
   }, [type, setValue])
 
   const onSubmit = (data: TransactionFormData) => {
-    createTransaction(
-      { ...data, walletId },
-      {
-        onSuccess: () => {
-          setOpen(false)
-          reset()
+    if (isEdit) {
+      updateTransaction(
+        {
+          id: transaction!.id,
+          data: { ...data, walletId },
         },
-      }
-    )
+        {
+          onSuccess: () => {
+            setOpen(false)
+            reset()
+          },
+        }
+      )
+    } else {
+      createTransaction(
+        { ...data, walletId },
+        {
+          onSuccess: () => {
+            setOpen(false)
+            reset()
+          },
+        }
+      )
+    }
   }
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="max-h-dvh sm:max-w-sm">
+      <DialogContent
+        className="max-h-dvh sm:max-w-sm"
+        onContextMenu={(e) => e.stopPropagation()}
+      >
         <ScrollArea className="max-h-[calc(100dvh-4rem)]">
           <form onSubmit={handleSubmit(onSubmit)} className="px-1">
             <DialogHeader>
@@ -161,9 +186,9 @@ export function CreateOrEditTransactionDialog({
                   name="amount"
                   render={({ field }) => (
                     <MoneyInput
+                      disabled={isEdit}
                       value={field.value ?? 0}
                       onChange={field.onChange}
-                      // currencySymbol={getCurrencySymbolByValue(wallet.currency)}
                     />
                   )}
                 />
@@ -181,31 +206,14 @@ export function CreateOrEditTransactionDialog({
                   control={control}
                   name="date"
                   render={({ field }) => (
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button
-                          variant="outline"
-                          className={cn(
-                            "justify-start text-left font-normal",
-                            !field.value && "text-muted-foreground",
-                            errors.date && "border-destructive"
-                          )}
-                        >
-                          {/* <CalendarIcon className="mr-2 size-4" /> */}
-                          {field.value
-                            ? format(field.value, "d MMMM yyyy", { locale: ru })
-                            : "Выберите дату"}
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="start">
-                        <Calendar
-                          mode="single"
-                          selected={field.value}
-                          onSelect={field.onChange}
-                          locale={ru}
-                        />
-                      </PopoverContent>
-                    </Popover>
+                    <DateTimeInput
+                      value={field.value}
+                      onChange={field.onChange}
+                      className={cn(
+                        !field.value && "text-muted-foreground",
+                        errors.date && "border-destructive"
+                      )}
+                    />
                   )}
                 />
                 {errors.date && (
@@ -223,6 +231,7 @@ export function CreateOrEditTransactionDialog({
                   name="type"
                   render={({ field }) => (
                     <RadioGroup
+                      disabled={isEdit}
                       value={
                         field.value === TransactionTypes.TRANSFER
                           ? "transfer"
@@ -276,6 +285,7 @@ export function CreateOrEditTransactionDialog({
                         value={field.value}
                         onValueChange={field.onChange}
                         className="flex gap-4"
+                        disabled={isEdit}
                       >
                         <div className="flex items-center gap-2">
                           <RadioGroupItem
@@ -318,7 +328,7 @@ export function CreateOrEditTransactionDialog({
                       <Select
                         onValueChange={field.onChange}
                         value={field.value || ""}
-                        disabled={targetWallets.length === 0}
+                        disabled={targetWallets.length === 0 || isEdit}
                       >
                         <SelectTrigger
                           className={cn(
@@ -430,7 +440,7 @@ export function CreateOrEditTransactionDialog({
                 )}
               </div>
 
-              {error && (
+              {(errorCreate || errorUpdate) && (
                 <p className="text-xs text-destructive">
                   Ошибка при {isEdit ? "редактировании" : "создании"}{" "}
                   транзакции. Попробуйте снова.
@@ -444,8 +454,11 @@ export function CreateOrEditTransactionDialog({
                   Отмена
                 </Button>
               </DialogClose>
-              <Button type="submit" disabled={isPending}>
-                {isPending ? (
+              <Button
+                type="submit"
+                disabled={isPendingCreate || isPendingUpdate}
+              >
+                {isPendingCreate || isPendingUpdate ? (
                   <>
                     <Spinner />
                     Сохраняется...

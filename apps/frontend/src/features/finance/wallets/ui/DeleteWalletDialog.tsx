@@ -32,7 +32,7 @@ export function DeleteWalletDialog({
   const navigate = useNavigate()
   const onSubmit = async (e: SubmitEvent<HTMLFormElement>) => {
     e.preventDefault()
-    deleteWallet(wallet, {
+    deleteWallet(wallet.id, {
       onSuccess: () => {
         setOpen(false)
         if (!onDelete) {

@@ -10,7 +10,7 @@ export function useCreateRecurringTransaction() {
 
   return useMutation({
     mutationFn: (data: CreateRecurringTransactionPayload) =>
-      transactionsApi.createRecurringTransaction(data),
+      transactionsApi.createRecurring(data),
     onSuccess: async ({ data }) => {
       toast.success(`Подписка ${data.title} создана`)
       queryClient.invalidateQueries({ queryKey: ["recurring"] })

@@ -1,8 +1,6 @@
 import { useEffect, useState, type ReactNode } from "react"
 import { Controller, useForm, useWatch } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { format } from "date-fns"
-import { ru } from "date-fns/locale"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -26,19 +24,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover"
-import { Calendar } from "@/components/ui/calendar"
 import { cn } from "@/shared/lib/utils"
 
 import {
   RecurringIntervals,
   RecurringIntervalsRu,
   TransactionTypes,
-  type Transaction,
+  type RecurringTransaction,
 } from "@/entities/finance/transactions/model/types"
 import { CategoryTypes } from "@/entities/finance/category/model/types"
 import {
@@ -49,22 +41,35 @@ import { useGetCategories } from "../../categories/model/useGetCategories"
 import { MoneyInput } from "@/shared/ui/MoneyInput"
 import { useCreateRecurringTransaction } from "../model/useCreateRecurringTransaction"
 import { CategoryIcon } from "@/shared/lib/categoryHalpers"
+import { useUpdateRecurringTransaction } from "../model/useUpdateRecurringTransaction"
+import { DateTimeInput } from "@/shared/ui/DateTimeInput"
 
 type Props = {
   walletId: string
-  transaction?: Transaction
+  recurringTransaction?: RecurringTransaction
   children?: ReactNode
 }
 
 export function CreateOrEditRecurringTransactionDialog({
   walletId,
-  transaction,
+  recurringTransaction,
   children,
 }: Props) {
-  const isEdit = !!transaction
+  const isEdit = !!recurringTransaction
   const [open, setOpen] = useState(false)
 
   const { data: categories = [] } = useGetCategories()
+
+  const defaultValues = {
+    title: recurringTransaction?.title ?? "",
+    type: recurringTransaction?.type ?? TransactionTypes.EXPENSE,
+    amount: recurringTransaction?.amount ?? undefined,
+    categoryId: recurringTransaction?.categoryId ?? undefined,
+    startDate: recurringTransaction?.nextDate
+      ? new Date(recurringTransaction.nextDate)
+      : new Date(),
+    interval: recurringTransaction?.interval,
+  }
 
   const {
     register,
@@ -75,14 +80,14 @@ export function CreateOrEditRecurringTransactionDialog({
     reset,
   } = useForm<RecurringTransactionFormData>({
     resolver: zodResolver(RecurringTransactionSchema),
-    defaultValues: {
-      title: transaction?.title ?? "",
-      type: transaction?.type ?? TransactionTypes.EXPENSE,
-      amount: transaction?.amount ?? undefined,
-      categoryId: transaction?.categoryId ?? undefined,
-      startDate: transaction?.date ? new Date(transaction.date) : new Date(),
-    },
+    defaultValues,
   })
+
+  useEffect(() => {
+    if (!open) {
+      reset()
+    }
+  }, [open, reset])
 
   const type = useWatch({ control, name: "type" })
   useEffect(() => {
@@ -97,22 +102,38 @@ export function CreateOrEditRecurringTransactionDialog({
 
   const {
     mutate: createRecurringTransaction,
-    isPending,
-    error,
+    isPending: isPendingCreate,
+    error: errorCreate,
   } = useCreateRecurringTransaction()
 
-  const onSubmit = (data: RecurringTransactionFormData) => {
-    console.log({ ...data, walletId })
+  const {
+    mutate: updateRecurringTransaction,
+    isPending: isPendingUpdate,
+    error: errorUpdate,
+  } = useUpdateRecurringTransaction()
 
-    createRecurringTransaction(
-      { ...data, walletId },
-      {
-        onSuccess: () => {
-          setOpen(false)
-          reset()
-        },
-      }
-    )
+  const onSubmit = (data: RecurringTransactionFormData) => {
+    if (isEdit) {
+      updateRecurringTransaction(
+        { id: recurringTransaction!.id, data: { ...data, walletId } },
+        {
+          onSuccess: () => {
+            setOpen(false)
+            reset()
+          },
+        }
+      )
+    } else {
+      createRecurringTransaction(
+        { ...data, walletId },
+        {
+          onSuccess: () => {
+            setOpen(false)
+            reset()
+          },
+        }
+      )
+    }
   }
 
   return (
@@ -124,7 +145,7 @@ export function CreateOrEditRecurringTransactionDialog({
             <DialogHeader>
               <DialogTitle>
                 {isEdit
-                  ? `Редактирование: ${transaction.title}`
+                  ? `Редактирование: ${recurringTransaction.title}`
                   : "Новая подписка"}
               </DialogTitle>
               <DialogDescription>
@@ -160,7 +181,8 @@ export function CreateOrEditRecurringTransactionDialog({
                     <MoneyInput
                       value={field.value ?? 0}
                       onChange={field.onChange}
-                      // currencySymbol={getCurrencySymbolByValue(wallet.currency)}
+                      disabled
+                      // currencySymbol={getCurrencySymbolByValue(.currency)}
                     />
                   )}
                 />
@@ -178,31 +200,10 @@ export function CreateOrEditRecurringTransactionDialog({
                   control={control}
                   name="startDate"
                   render={({ field }) => (
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button
-                          variant="outline"
-                          className={cn(
-                            "justify-start text-left font-normal",
-                            !field.value && "text-muted-foreground",
-                            errors.startDate && "border-destructive"
-                          )}
-                        >
-                          {/* <CalendarIcon className="mr-2 size-4" /> */}
-                          {field.value
-                            ? format(field.value, "d MMMM yyyy", { locale: ru })
-                            : "Выберите дату"}
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="start">
-                        <Calendar
-                          mode="single"
-                          selected={field.value}
-                          onSelect={field.onChange}
-                          locale={ru}
-                        />
-                      </PopoverContent>
-                    </Popover>
+                    <DateTimeInput
+                      value={field.value}
+                      onChange={field.onChange}
+                    />
                   )}
                 />
                 {errors.startDate && (
@@ -342,7 +343,7 @@ export function CreateOrEditRecurringTransactionDialog({
                 )}
               </div>
 
-              {error && (
+              {(errorCreate || errorUpdate) && (
                 <p className="text-xs text-destructive">
                   Ошибка при {isEdit ? "редактировании" : "создании"}{" "}
                   транзакции. Попробуйте снова.
@@ -356,8 +357,11 @@ export function CreateOrEditRecurringTransactionDialog({
                   Отмена
                 </Button>
               </DialogClose>
-              <Button type="submit" disabled={isPending}>
-                {isPending ? (
+              <Button
+                type="submit"
+                disabled={isPendingCreate || isPendingUpdate}
+              >
+                {isPendingCreate || isPendingUpdate ? (
                   <>
                     <Spinner />
                     Сохраняется...

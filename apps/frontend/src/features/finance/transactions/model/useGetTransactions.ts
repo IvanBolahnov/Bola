@@ -20,7 +20,7 @@ export function useGetTransactions(params?: GetTransactionsParams) {
   >({
     queryFn: async () => {
       try {
-        const response = await transactionsApi.getTransactions(params)
+        const response = await transactionsApi.get(params)
         return response.data
       } catch (error: unknown) {
         if (error instanceof AxiosError) {

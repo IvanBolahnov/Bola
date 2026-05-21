@@ -10,17 +10,11 @@ export function useCreateTransaction() {
 
   return useMutation({
     mutationFn: (data: CreateTransactionPayload) =>
-      transactionsApi.createTransaction(data),
+      transactionsApi.create(data),
     onSuccess: ({ data }) => {
       toast.success(`Перевод ${data.title} создан`)
       queryClient.invalidateQueries({ queryKey: ["transactions"] })
-      queryClient.invalidateQueries({ queryKey: ["wallets", data.walletId] })
       queryClient.invalidateQueries({ queryKey: ["wallets"] })
-      if (data.toWalletId) {
-        queryClient.invalidateQueries({
-          queryKey: ["wallets", data.toWalletId],
-        })
-      }
     },
     onError: () => {
       toast.success(`Не удалось создать перевод`)

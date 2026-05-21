@@ -6,9 +6,9 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb"
-import { CategoriesList } from "@/features/finance/categories/ui/СategoriesList"
 import { FinanceTabsNav } from "../FinanceTabsNav"
 import { Link } from "react-router-dom"
+import { CategoriesList } from "@/widgets/finance/ui/СategoriesList"
 
 export default function CategoriesPage() {
   return (

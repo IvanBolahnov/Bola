@@ -13,6 +13,8 @@ import {
   RiArrowDownLine,
   RiArrowLeftRightLine,
   RiLoopRightLine,
+  RiPencilLine,
+  RiDeleteBinLine,
 } from "@remixicon/react"
 import type { RecurringTransaction } from "@/entities/finance/transactions/model/types"
 import {
@@ -30,6 +32,20 @@ import {
   EmptyTitle,
 } from "@/components/ui/empty"
 import { getRecurringIntervalRuByValue } from "@/shared/lib/reccuringHalpers"
+import { MenuItems, type MenuItem } from "@/shared/ui/MenuItems"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import {
+  ContextMenuItem,
+  ContextMenuSeparator,
+} from "@/components/ui/context-menu"
+import { CreateOrEditRecurringTransactionDialog } from "@/features/finance/transactions/ui/CreateOrEditRecurringTransactionDialog"
+import { DeleteRecurringTransactionDialog } from "@/features/finance/transactions/ui/DeleteRecurringTransactionDialog"
 
 type RecurringTransactionsCardProps = {
   recurringTransactions: RecurringTransaction[]
@@ -37,13 +53,13 @@ type RecurringTransactionsCardProps = {
 
 const typeConfig = {
   [TransactionTypes.INCOME]: {
-    icon: RiArrowDownLine,
+    icon: RiArrowUpLine,
     className: "text-green-500",
     amountClassName: "text-green-500",
     prefix: "+",
   },
   [TransactionTypes.EXPENSE]: {
-    icon: RiArrowUpLine,
+    icon: RiArrowDownLine,
     className: "text-red-500",
     amountClassName: "text-red-500",
     prefix: "-",
@@ -82,50 +98,116 @@ export function RecurringTransactionsCard({
         ) : (
           <ScrollArea className="h-full">
             <ul className="flex flex-col gap-2">
-              {recurringTransactions.map((transaction) => {
-                const config = typeConfig[transaction.type]
+              {recurringTransactions.map((recurringTransaction) => {
+                const config = typeConfig[recurringTransaction.type]
                 const Icon = config.icon
                 const currency = getCurrencySymbolByValue(
-                  transaction.wallet.currency
+                  recurringTransaction.wallet.currency
                 )
 
-                return (
-                  <li
-                    key={transaction.id}
-                    className="flex items-center gap-3 rounded-lg p-2 transition-colors hover:bg-muted/50"
-                  >
-                    <div className={cn("shrink-0", config.className)}>
-                      <Icon size={18} />
-                    </div>
-                    <div className="flex flex-1 flex-col gap-0.5 overflow-hidden">
-                      <span className="truncate text-sm font-medium">
-                        {transaction.title}
-                      </span>
-                      <span className="text-xs text-muted-foreground">
-                        {transaction.category?.name ??
-                          TransactionTypesRu[
-                            transaction.type.toUpperCase() as keyof typeof TransactionTypesRu
-                          ]}
-                      </span>
-                    </div>
-                    <div className="shrink-0 text-right">
-                      <span
-                        className={cn(
-                          "text-sm font-semibold",
-                          config.amountClassName
-                        )}
+                const recurringTransactionMenuItems: MenuItem[] = [
+                  {
+                    dropdownItem: (
+                      <CreateOrEditRecurringTransactionDialog
+                        recurringTransaction={recurringTransaction}
+                        walletId={recurringTransaction.walletId}
                       >
-                        {getRecurringIntervalRuByValue(transaction.interval)}{" "}
-                        {config.prefix}
-                        {numberToMoney(transaction.amount)} {currency}
-                      </span>
-                      <p className="text-xs text-muted-foreground">
-                        {new Date(transaction.nextDate).toLocaleDateString(
-                          "ru-RU"
-                        )}
-                      </p>
-                    </div>
-                  </li>
+                        <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                          <RiPencilLine />
+                          Редактировать
+                        </DropdownMenuItem>
+                      </CreateOrEditRecurringTransactionDialog>
+                    ),
+                    contextItem: (
+                      <CreateOrEditRecurringTransactionDialog
+                        recurringTransaction={recurringTransaction}
+                        walletId={recurringTransaction.walletId}
+                      >
+                        <ContextMenuItem onSelect={(e) => e.preventDefault()}>
+                          <RiPencilLine />
+                          Редактировать
+                        </ContextMenuItem>
+                      </CreateOrEditRecurringTransactionDialog>
+                    ),
+                  },
+                  {
+                    dropdownItem: <DropdownMenuSeparator />,
+                    contextItem: <ContextMenuSeparator />,
+                  },
+                  {
+                    dropdownItem: (
+                      <DeleteRecurringTransactionDialog
+                        recurringTransaction={recurringTransaction}
+                      >
+                        <DropdownMenuItem
+                          onSelect={(e) => e.preventDefault()}
+                          variant="destructive"
+                        >
+                          <RiDeleteBinLine />
+                          Удалить
+                        </DropdownMenuItem>
+                      </DeleteRecurringTransactionDialog>
+                    ),
+                    contextItem: (
+                      <DeleteRecurringTransactionDialog
+                        recurringTransaction={recurringTransaction}
+                      >
+                        <ContextMenuItem
+                          onSelect={(e) => e.preventDefault()}
+                          variant="destructive"
+                        >
+                          <RiDeleteBinLine />
+                          Удалить
+                        </ContextMenuItem>
+                      </DeleteRecurringTransactionDialog>
+                    ),
+                  },
+                ]
+
+                return (
+                  <DropdownMenu key={recurringTransaction.id}>
+                    <DropdownMenuTrigger asChild>
+                      <li className="flex items-center gap-3 rounded-lg p-2 transition-colors hover:bg-muted/50">
+                        <div className={cn("shrink-0", config.className)}>
+                          <Icon size={18} />
+                        </div>
+                        <div className="flex flex-1 flex-col gap-0.5 overflow-hidden">
+                          <span className="truncate text-sm font-medium">
+                            {recurringTransaction.title}
+                          </span>
+                          <span className="text-xs text-muted-foreground">
+                            {recurringTransaction.category?.name ??
+                              TransactionTypesRu[
+                                recurringTransaction.type.toUpperCase() as keyof typeof TransactionTypesRu
+                              ]}
+                          </span>
+                        </div>
+                        <div className="shrink-0 text-right">
+                          <span
+                            className={cn(
+                              "text-sm font-semibold",
+                              config.amountClassName
+                            )}
+                          >
+                            {config.prefix}
+                            {numberToMoney(recurringTransaction.amount)}{" "}
+                            {currency}
+                          </span>
+                          <p className="text-xs text-muted-foreground">
+                            {getRecurringIntervalRuByValue(
+                              recurringTransaction.interval
+                            )}
+                          </p>
+                        </div>
+                      </li>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className="w-auto">
+                      <MenuItems
+                        type="dropdown"
+                        items={recurringTransactionMenuItems}
+                      />
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 )
               })}
             </ul>

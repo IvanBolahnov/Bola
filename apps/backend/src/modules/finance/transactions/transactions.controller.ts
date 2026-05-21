@@ -17,7 +17,7 @@ import { JwtAuthGuard } from "../../auth/guards/jwt-auth.guard"
 import { CreateTransactionDto } from "../dto/transaction/create-transaction.dto"
 import { UpdateTransactionDto } from "../dto/transaction/update-transaction.dto"
 import { GetTransactionsDto } from "../dto/transaction/get-transactions.dto"
-import { UserRequest } from "../../common/types/UserRequest.type"
+import { UserRequest } from "../../common/types/user-request.type"
 
 @Controller("finance/transactions")
 @UseGuards(JwtAuthGuard)

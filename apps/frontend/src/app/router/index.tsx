@@ -6,6 +6,7 @@ import NotFoundPage from "@/pages/notFound"
 import FinancePage from "@/pages/finance"
 import WalletPage from "@/pages/finance/wallet"
 import CategoriesPage from "@/pages/finance/categories"
+import AdminPage from "@/pages/admin"
 
 const LoginPage = lazy(() => import("@/pages/login"))
 const RegisterPage = lazy(() => import("@/pages/register"))
@@ -18,6 +19,17 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   ) : (
     <Navigate to="/login" replace />
   )
+}
+
+function AdminRoute({ children }: { children: React.ReactNode }) {
+  const { isAuthenticated, user } = useAuthStore()
+  if (!isAuthenticated || !user) {
+    return <Navigate to="/login" replace />
+  }
+  if (user.role !== "admin") {
+    return <Navigate to="/profile" replace />
+  }
+  return <AppLayout>{children}</AppLayout>
 }
 
 function GuestRoute({ children }: { children: React.ReactNode }) {
@@ -83,6 +95,15 @@ export function AppRouter() {
             <ProtectedRoute>
               <WalletPage />
             </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/admin"
+          element={
+            <AdminRoute>
+              <AdminPage />
+            </AdminRoute>
           }
         />
 

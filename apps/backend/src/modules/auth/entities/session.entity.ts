@@ -41,7 +41,7 @@ export class Session {
 	@Column({ default: false })
 	isRevoked!: boolean // токен был отозван (reuse attack или логаут)
 
-	/* Показывает дошел ли токен до клиента (Клиент должен вызвать 'auth/token-accepted') */
+	/* Показывает дошел ли токен до клиента */
 	@Column({ default: false })
 	isAccepted!: boolean
 

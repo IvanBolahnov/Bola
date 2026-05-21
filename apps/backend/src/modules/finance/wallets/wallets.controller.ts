@@ -13,7 +13,7 @@ import { WalletsService } from "./wallets.service"
 import { JwtAuthGuard } from "../../auth/guards/jwt-auth.guard"
 import { CreateWalletDto } from "../dto/wallet/create-wallet.dto"
 import { UpdateWalletDto } from "../dto/wallet/update-wallet.dto"
-import { UserRequest } from "../../common/types/UserRequest.type"
+import { UserRequest } from "../../common/types/user-request.type"
 import { FindWalletParams } from "../dto/wallet/find-wallet.dto"
 
 @Controller("finance/wallets")
